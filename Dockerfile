@@ -30,10 +30,17 @@ RUN apt-get update &&  \
     # Font libraries
     apt-get -qqy install fonts-ipafont-gothic xfonts-100dpi xfonts-75dpi xfonts-cyrillic xfonts-scalable libfreetype6 libfontconfig
 
+# Set the locale
+RUN apt-get clean && apt-get update && apt-get install -y locales
+RUN echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+RUN echo "LANG=en_US.UTF-8" > /etc/locale.conf
+RUN locale-gen en_US.UTF-8
+
 ## JAVA INSTALLATION
 RUN echo "deb http://archive.debian.org/debian/ jessie-backports main" >> /etc/apt/sources.list
 RUN apt-get -o Acquire::Check-Valid-Until=false update && DEBIAN_FRONTEND=noninteractive apt-get install -y -t jessie-backports --force-yes --no-install-recommends openjdk-8-jdk-headless openjdk-8-jre-headless ca-certificates-java && apt-get clean all
-#RUN sed 's/deb http:\/\/archive.debian.org\/debian\/ jessie-backports main//g' /etc/apt/sources.list > /etc/apt/sources.list
+
 # System libs for android enviroment
 RUN echo ANDROID_HOME="${ANDROID_HOME}" >> /etc/environment && \
     dpkg --add-architecture i386 && \
@@ -43,6 +50,8 @@ RUN echo ANDROID_HOME="${ANDROID_HOME}" >> /etc/environment && \
 RUN apt-get clean && \
     apt-get autoclean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN sed 's/deb http:\/\/archive.debian.org\/debian\/ jessie-backports main//g' /etc/apt/sources.list > /etc/apt/sources.list
 
 # Install Android Tools
 RUN    mkdir  /opt/android-sdk-linux && cd /opt/android-sdk-linux && \
