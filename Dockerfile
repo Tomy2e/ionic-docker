@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     ANDROID_HOME=/opt/android-sdk-linux \
     NPM_VERSION=6.11.3 \
     IONIC_VERSION=5.2.8 \
-    CORDOVA_VERSION=9.0.0 \
+    CORDOVA_VERSION=8.1.1 \
     YARN_VERSION=1.17.3 \
     GRADLE_VERSION=5.6.2 \
     # Fix for the issue with Selenium, as described here:
@@ -31,27 +31,27 @@ RUN apt-get update &&  \
     apt-get -qqy install fonts-ipafont-gothic xfonts-100dpi xfonts-75dpi xfonts-cyrillic xfonts-scalable libfreetype6 libfontconfig
 
 ## JAVA INSTALLATION
-RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
-RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main" > /etc/apt/sources.list.d/webupd8team-java-trusty.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --force-yes --no-install-recommends oracle-java8-installer && apt-get clean all
+RUN echo "deb http://archive.debian.org/debian/ jessie-backports main" >> /etc/apt/sources.list
+RUN apt-get -o Acquire::Check-Valid-Until=false update && DEBIAN_FRONTEND=noninteractive apt-get install -y -t jessie-backports --force-yes --no-install-recommends openjdk-8-jdk-headless openjdk-8-jre-headless ca-certificates-java && apt-get clean all
+#RUN sed 's/deb http:\/\/archive.debian.org\/debian\/ jessie-backports main//g' /etc/apt/sources.list > /etc/apt/sources.list
 # System libs for android enviroment
 RUN echo ANDROID_HOME="${ANDROID_HOME}" >> /etc/environment && \
     dpkg --add-architecture i386 && \
-    apt-get update && \
-    apt-get install -y --force-yes expect ant wget libc6-i386 lib32stdc++6 lib32gcc1 lib32ncurses5 lib32z1 qemu-kvm kmod && \
-    apt-get clean && \
+    apt-get update -o Acquire::Check-Valid-Until=false && \
+    apt-get install -y --force-yes -t jessie-backports expect ant wget libc6-i386 lib32stdc++6 lib32gcc1 lib32ncurses5 lib32z1 qemu-kvm kmod
+
+RUN apt-get clean && \
     apt-get autoclean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install Android Tools
-    mkdir  /opt/android-sdk-linux && cd /opt/android-sdk-linux && \
-    wget --output-document=android-tools-sdk.zip --quiet https://dl.google.com/android/repository/tools_r26.1.1-linux.zip && \
+RUN    mkdir  /opt/android-sdk-linux && cd /opt/android-sdk-linux && \
+    wget --output-document=android-tools-sdk.zip --quiet https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
     unzip -q android-tools-sdk.zip && \
-    rm -f android-tools-sdk.zip && \
+    rm -f android-tools-sdk.zip
 
 # Install Gradle
-    mkdir  /opt/gradle && cd /opt/gradle && \
+RUN    mkdir  /opt/gradle && cd /opt/gradle && \
     wget --output-document=gradle.zip --quiet https://services.gradle.org/distributions/gradle-"$GRADLE_VERSION"-bin.zip && \
     unzip -q gradle.zip && \
     rm -f gradle.zip && \
